@@ -4,7 +4,7 @@ ERP e ponto de venda web para o piloto **CompreMai$ Estivas**, varejo supermerca
 
 > **Estado do projeto:** fundação executável em desenvolvimento. Há painel ERP, tela inicial do PDV, simulação de conferência e comprovante de fechamento, API local, esquema inicial do banco e escopo. Ainda não há cadastro operacional, venda, sessão real de caixa, autenticação ou emissão fiscal. Esta versão não deve ser usada em produção.
 >
-> **Revisão do escopo:** 16 de setembro de 2026.
+> **Revisão do escopo:** 17 de setembro de 2026.
 
 ## Executar a primeira versão
 
