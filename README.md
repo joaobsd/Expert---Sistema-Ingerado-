@@ -1,16 +1,54 @@
 # EXPERT — Sistema ERP com PDV integrado
 
-ERP e ponto de venda planejados para operar pela web. O painel administrativo e o PDV serão acessados no navegador. A emissão de NF-e e NFC-e ficará em um serviço no servidor, com integração à SEFAZ.
+ERP e ponto de venda web para o piloto **CompreMai$ Estivas**, varejo supermercadista no **Rio Grande do Norte**. O painel administrativo e o PDV são acessados no navegador. A emissão de NF-e e NFC-e será implementada em uma etapa posterior, com serviço no servidor e homologação na SEFAZ.
 
-> **Estado do projeto:** planejamento. Este repositório ainda não contém uma aplicação pronta, instalador ou ambiente de produção. Este README descreve o escopo proposto, as decisões técnicas iniciais e os critérios para começar a implementação.
+> **Estado do projeto:** fundação executável em desenvolvimento. Há painel ERP, tela inicial do PDV, API local, esquema inicial do banco e escopo. Ainda não há cadastro operacional, venda, autenticação ou emissão fiscal. Esta versão não deve ser usada em produção.
 >
 > **Revisão do escopo:** 16 de setembro de 2026.
 
+## Executar a primeira versão
+
+Esta base foi compilada com Node.js 24.19.0 e pnpm 11.19.0. Os serviços escutam apenas em `127.0.0.1`. Em uma máquina de desenvolvimento com Node.js e pnpm instalados:
+
+```bash
+pnpm install
+pnpm build
+```
+
+Abra três terminais na pasta do repositório:
+
+```bash
+pnpm dev:api
+pnpm dev:admin
+pnpm dev:pdv
+```
+
+| Serviço | Endereço local | Conteúdo atual |
+| --- | --- | --- |
+| Painel ERP | `http://127.0.0.1:3000` | Visão geral, estrutura de produtos e catálogo dos relatórios |
+| PDV | `http://127.0.0.1:5173` | Tela de caixa, sem conclusão de venda |
+| API | `http://127.0.0.1:3333/health` | Estado do serviço |
+| Piloto | `http://127.0.0.1:3333/v1/pilot` | CompreMai$ Estivas, supermercado, RN |
+
+O banco é opcional para abrir as telas. O PostgreSQL é necessário antes dos cadastros reais. Crie **um banco exclusivo para desenvolvimento**, copie `apps/api/.env.example` para `apps/api/.env`, configure `DATABASE_URL` e execute `pnpm db:migrate`. A rota `/health/db` mostra se a conexão foi configurada. Nenhuma credencial de banco deve ser incluída em commits.
+
+```text
+apps/
+  admin/   Painel web em Next.js
+  pdv/     Frente de caixa web em React e Vite
+  api/     API em NestJS e migração inicial do PostgreSQL
+docs/      Escopo revisado do projeto
+```
+
+O detalhamento funcional está na [planilha do escopo](docs/escopo_erp_pdv_web_revisado.xlsx).
+
+A API recusa inicialização com `NODE_ENV=production` porque autenticação e autorização ainda precisam ser implementadas. O esquema já separa empresa, filial, departamentos e produtos, com CNPJ textual e data de cadastro. A migração foi preparada, mas ainda não foi aplicada a um banco local nesta etapa.
+
 ## Objetivo
 
-Construir uma base de ERP para varejo com PDV integrado, começando por um piloto em **uma loja e uma UF**. Essa escolha é uma proposta de recorte para reduzir o risco inicial; a empresa, a UF e o regime tributário ainda precisam ser confirmados.
+Construir uma base de ERP para varejo com PDV integrado, começando pelo **CompreMai$ Estivas no Rio Grande do Norte**. A razão social, o CNPJ, o regime tributário e o contador responsável ainda precisam ser confirmados.
 
-O sistema deve permitir a evolução para várias empresas, filiais e caixas sem misturar dados, números fiscais, estoques ou permissões. Os produtos concretos que serão cadastrados e vendidos serão definidos **depois da aprovação deste escopo**.
+O sistema deve permitir a evolução para várias empresas, filiais e caixas sem misturar dados, números fiscais, estoques ou permissões. Os produtos concretos serão levantados com a loja antes dos primeiros cadastros.
 
 ## Escopo funcional
 
@@ -143,7 +181,7 @@ Cada fase depende do aceite da anterior. O piloto só entra em produção após 
 
 ## Decisões pendentes
 
-- Confirmar segmento, empresa piloto, UF, regime tributário e contador responsável.
+- Confirmar razão social, CNPJ, regime tributário e contador responsável do CompreMai$ Estivas. Segmento e UF do piloto já foram definidos.
 - Definir os **produtos reais** do sistema na próxima etapa: categorias, SKUs, variações, GTIN, unidades, preços e classificações fiscais.
 - Definir o método de custeio do estoque e confirmar os limites da curva ABC com a gestão.
 - Decidir se DAV faz parte do primeiro produto e validar suas regras na operação escolhida.
@@ -154,7 +192,7 @@ Cada fase depende do aceite da anterior. O piloto só entra em produção após 
 
 ## Como começar a implementação
 
-Ainda não há comandos de instalação ou execução porque o código do produto será criado do zero. A sequência de trabalho é:
+Os comandos para abrir a fundação local estão no início deste README. A sequência de implementação é:
 
 1. Fechar as decisões acima com os responsáveis de negócio, operação e fiscal.
 2. Detalhar os produtos e os fluxos reais de venda e estoque.
