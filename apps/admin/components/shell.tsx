@@ -1,11 +1,12 @@
 import Link from 'next/link';
 
-type Page = 'inicio' | 'produtos' | 'relatorios';
+type Page = 'inicio' | 'produtos' | 'relatorios' | 'fechamentos';
 
 const navigation: { href: string; label: string; icon: string; page: Page }[] = [
   { href: '/', label: 'Visão geral', icon: '◫', page: 'inicio' },
   { href: '/produtos', label: 'Produtos', icon: '▦', page: 'produtos' },
   { href: '/relatorios', label: 'Relatórios', icon: '▥', page: 'relatorios' },
+  { href: '/fechamentos', label: 'Fechamentos', icon: '▤', page: 'fechamentos' },
 ];
 
 export function Shell({

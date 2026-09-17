@@ -2,7 +2,7 @@
 
 ERP e ponto de venda web para o piloto **CompreMai$ Estivas**, varejo supermercadista no **Rio Grande do Norte**. O painel administrativo e o PDV são acessados no navegador. A emissão de NF-e e NFC-e será implementada em uma etapa posterior, com serviço no servidor e homologação na SEFAZ.
 
-> **Estado do projeto:** fundação executável em desenvolvimento. Há painel ERP, tela inicial do PDV, API local, esquema inicial do banco e escopo. Ainda não há cadastro operacional, venda, autenticação ou emissão fiscal. Esta versão não deve ser usada em produção.
+> **Estado do projeto:** fundação executável em desenvolvimento. Há painel ERP, tela inicial do PDV, simulação de conferência e comprovante de fechamento, API local, esquema inicial do banco e escopo. Ainda não há cadastro operacional, venda, sessão real de caixa, autenticação ou emissão fiscal. Esta versão não deve ser usada em produção.
 >
 > **Revisão do escopo:** 16 de setembro de 2026.
 
@@ -27,15 +27,18 @@ pnpm dev:pdv
 | --- | --- | --- |
 | Painel ERP | `http://127.0.0.1:3000` | Visão geral, estrutura de produtos e catálogo dos relatórios |
 | PDV | `http://127.0.0.1:5173` | Tela de caixa, sem conclusão de venda |
+| Fechamento no PDV | `http://127.0.0.1:5173` → **Fechamento** | Simulação de conferência e impressão de teste, sem gravação |
+| Retaguarda dos PDVs | `http://127.0.0.1:3000/fechamentos` | Estrutura do relatório, aguardando operações reais |
 | API | `http://127.0.0.1:3333/health` | Estado do serviço |
 | Piloto | `http://127.0.0.1:3333/v1/pilot` | CompreMai$ Estivas, supermercado, RN |
+| Pagamentos | `http://127.0.0.1:3333/v1/payments/capabilities` | Meios previstos e TEF ainda sem provedor |
 
 O banco é opcional para abrir as telas. O PostgreSQL é necessário antes dos cadastros reais. Crie **um banco exclusivo para desenvolvimento**, copie `apps/api/.env.example` para `apps/api/.env`, configure `DATABASE_URL` e execute `pnpm db:migrate`. A rota `/health/db` mostra se a conexão foi configurada. Nenhuma credencial de banco deve ser incluída em commits.
 
 ```text
 apps/
   admin/   Painel web em Next.js
-  pdv/     Frente de caixa web em React e Vite
+  pdv/     Frente de caixa web em React e Vite; simulação de fechamento
   api/     API em NestJS e migração inicial do PostgreSQL
 docs/      Escopo revisado do projeto
 ```
@@ -58,11 +61,11 @@ O sistema deve permitir a evolução para várias empresas, filiais e caixas sem
 | Cadastros | Estrutura de produtos, clientes e fornecedores; SKU, GTIN, unidade e classificação fiscal | Catálogos específicos, variações e importação em massa |
 | Preços | Tabelas por loja e regras determinísticas de desconto | Promoções e campanhas mais complexas |
 | Estoque | Movimentos, saldo por depósito, inventário e devoluções | Reposição, previsão e integrações externas |
-| PDV | Abertura e fechamento de caixa, venda rápida, pagamentos registrados, cancelamento e conciliação | Integração TEF e adquirentes |
+| PDV | Abertura e fechamento de caixa, venda rápida, finalizadoras Dinheiro, Débito, Crédito, PIX, Convênio, Troca e Outros, cancelamento e conciliação | Integração TEF com provedor a escolher |
 | Fiscal | NF-e 55 e NFC-e 65 online, eventos, DANFE, XML e guarda | Contingência adicional, somente após validação técnica e fiscal |
 | Vendas | Orçamentos e conversão sem redigitação | DAV, se houver necessidade e regra local validada |
 | Gestão | Relatórios fiscais de vendas, cadastro de produtos e desempenho por check-out | Entradas de mercadorias com compras; depois BI, CRM e fidelidade |
-| Financeiro | Registros necessários à conciliação da venda e do caixa | Compras, contas a pagar e receber, bancos e conciliação completa |
+| Financeiro | Registros necessários à conciliação da venda e do caixa, incluindo Convênio e crédito de Troca | Compras, contas a pagar e receber, bancos e conciliação completa |
 
 O primeiro piloto terá **emissão fiscal online**. Um rascunho de venda poderá ser preparado sem conexão e sincronizado depois, mas não será apresentado como venda fiscal concluída enquanto não houver autorização da SEFAZ ou uma modalidade de contingência efetivamente homologada.
 
@@ -112,7 +115,7 @@ O PDV web poderá manter a interface, parte do catálogo e rascunhos no navegado
 
 Os dados locais do navegador podem ser removidos pelo usuário ou pelo próprio navegador em determinadas condições. A aplicação solicitará armazenamento persistente quando suportado, avisará sobre rascunhos não sincronizados e jamais considerará o cache local como backup. A sincronização em segundo plano será auxiliar, pois seu suporte varia entre navegadores.
 
-A impressão inicial usará o diálogo do navegador, com layout adequado para a impressora térmica escolhida. Impressão silenciosa, gaveta, balança e comunicação direta com dispositivos exigem testes por **sistema operacional, navegador e modelo**. APIs como WebUSB e Web Serial não serão consideradas compatíveis sem essa homologação. Leitores de código de barras que funcionam como teclado poderão ser testados no fluxo comum do PDV.
+A impressão inicial usará o diálogo do navegador. Os modelos informados para o caixa são **Elgin i9, i9 Full e i9 Full2**. A prévia de fechamento usa layout de 80 mm, sujeito a teste em cada impressora, driver, sistema operacional e navegador, incluindo margens, escala e corte. Impressão silenciosa, gaveta, balança e comunicação direta com dispositivos exigem testes específicos. APIs como WebUSB e Web Serial não serão consideradas compatíveis sem essa homologação. Leitores de código de barras que funcionam como teclado poderão ser testados no fluxo comum do PDV.
 
 Uma solução fiscal realmente offline, com assinatura, numeração, DANFE e transmissão posterior, ainda depende de uma decisão específica. A viabilidade para um produto que permaneça 100% no navegador deverá ser demonstrada e aprovada para a UF do piloto antes de constar como funcionalidade disponível.
 
@@ -141,6 +144,23 @@ Todos os relatórios terão filtro de período, empresa e filial, respeitarão o
 | Cadastro de produtos | Período pela **data de cadastro**, departamento, status, SKU e usuário responsável. | Data e hora de cadastro, SKU, descrição, departamento, unidade, GTIN quando houver, status e usuário que cadastrou. | Fundação |
 | Entradas de mercadorias | Período pela **data da entrada confirmada**, fornecedor, filial, departamento e documento de origem. Visões sintética por fornecedor/departamento e analítica por item. | Data da entrada, fornecedor, documento, produto, quantidade, custo unitário e custo total da entrada; ajustes e devoluções identificados separadamente. | Compras e financeiro |
 | Vendas do PDV por check-out | Período, filial, check-out, operador e turno/abertura de caixa. | Vendas concluídas, itens, valor bruto, descontos, valor líquido, cancelamentos e **ticket médio por check-out**. | PDV online |
+| Fechamento dos PDVs | Período pela data/hora do fechamento, filial, check-out, operador, turno, situação e presença de diferença. Consulta geral na retaguarda e detalhe por sessão. | Fundo de troco, suprimentos, sangrias, vendas e estornos; previsto pelo sistema, conferido e diferença por dinheiro, débito, crédito, PIX, Convênio, Troca e outros. Comprovante individual não fiscal em bobina térmica. | PDV online |
+
+### Fechamento e conferência do caixa
+
+1. O operador abre uma sessão identificada por filial, check-out e usuário, informando o fundo de troco. Suprimentos e sangrias ficam vinculados à sessão com valor, data, autor e motivo.
+2. Ao solicitar fechamento, o servidor calcula os recebimentos líquidos de pagamentos concluídos, descontando estornos e devoluções vinculados. **Dinheiro previsto na gaveta = fundo de troco + vendas líquidas em dinheiro + suprimentos − sangrias.** Os estornos em dinheiro já reduzem a venda líquida. Para os demais meios, o previsto é a operação confirmada menos estornos. Convênio e Troca têm conferência documental ou eletrônica, sem compor o dinheiro da gaveta.
+3. O operador informa o dinheiro contado fisicamente e os valores conferidos dos demais meios. O sistema calcula **diferença = conferido − previsto** por meio e no total. Divergência exige observação e identificação do responsável; o fechamento é preservado como evento auditável, sem apagar pagamentos ou movimentos originais.
+4. O comprovante de fechamento mostra loja, filial, check-out, operador, data/hora, sessão, movimentações, vendas líquidas, valores previstos, conferidos e diferenças por meio, total e observação. Deve indicar **DOCUMENTO NÃO FISCAL**. Reimpressões preservam a identificação e os números do fechamento original.
+5. A retaguarda reúne todos os fechamentos por período e caixa, permite abrir o detalhe e totaliza valores por meio. **Fundo de troco e suprimentos não são vendas**; indicadores de faturamento usam somente as vendas vinculadas, sem somar recebimentos mais de uma vez.
+
+Nesta versão há uma **simulação local** para validar a conta e o layout do comprovante: o usuário digita valores do sistema e valores conferidos; o impresso contém aviso de simulação. Ela não cria venda, sessão ou fechamento e não alimenta o relatório da retaguarda. A gravação real depende das próximas implementações de autenticação, vendas, pagamentos, movimentos de caixa e banco. Os meios previstos são dinheiro, débito, crédito, PIX, Convênio, Troca e outros.
+
+### TEF, Convênio e Troca
+
+O PDV terá integração TEF para as finalizadoras que o provedor escolhido suportar. O **provedor está a definir**; portanto, não há transação TEF ativa nesta versão. A integração exigirá aprovação, consulta de transação incerta, cancelamento/estorno, idempotência, comprovantes e conciliação. Convênio será vinculado a cliente/conveniado e a uma obrigação a receber. Troca usará crédito originado de devolução rastreável, com controle de saldo. As regras de autorização, limites e validade serão definidas com a loja. O contrato funcional, cenários de teste e decisões pendentes estão em [TEF e finalizadoras](docs/tef-e-finalizadoras.md).
+
+A API já expõe os meios previstos e informa explicitamente que as transações estão desabilitadas. O código contém um contrato de adaptador para autorização, consulta e cancelamento, aguardando o provedor escolhido.
 
 ### Regras dos indicadores
 
@@ -170,7 +190,7 @@ Os prazos abaixo são **indicativos**. Eles serão recalculados após a definiç
 | --- | --- | --- |
 | 0. Descoberta | 2 a 3 semanas | Processos, matriz fiscal, protótipo, decisões de escopo e backlog aprovados |
 | 1. Fundação | 3 a 4 semanas | Login, isolamento, cadastros base, relatório de produtos por data de cadastro, auditoria, deploy e restauração testados |
-| 2. PDV e estoque online | 4 a 6 semanas | Venda, caixa e estoque conciliados sem duplicidade; ticket médio por check-out |
+| 2. PDV e estoque online | 4 a 6 semanas | Venda, caixa e estoque conciliados sem duplicidade; ticket médio e fechamento por check-out |
 | 3. Fiscal online | 6 a 10 semanas | NF-e/NFC-e e eventos homologados na UF piloto; vendas sintéticas e analíticas com custo e curva ABC |
 | 4. Offline web limitado | 3 a 5 semanas | Rascunhos recuperáveis e sincronização idempotente |
 | 5. Piloto | 2 a 4 semanas | Uma loja operando com periféricos testados e fechamento diário reproduzível |
@@ -186,13 +206,17 @@ Cada fase depende do aceite da anterior. O piloto só entra em produção após 
 - Definir o método de custeio do estoque e confirmar os limites da curva ABC com a gestão.
 - Decidir se DAV faz parte do primeiro produto e validar suas regras na operação escolhida.
 - Escolher equipamentos, navegadores e sistemas operacionais do caixa.
-- Definir como serão confirmados e conciliados cartão e PIX; TEF depende de provedor e contrato.
+- Testar o comprovante de fechamento nos modelos Elgin i9, i9 Full e i9 Full2, incluindo largura efetiva da bobina e configuração do driver.
+- Escolher o provedor TEF e confirmar como cartão e PIX serão autorizados, consultados, cancelados e conciliados.
+- Fechar as regras de Convênio e Troca: cliente elegível, limite, autorização, crédito de devolução, saldo e validade.
 - Definir hospedagem, domínio, custos operacionais, metas de disponibilidade e recuperação.
 - Avaliar separadamente a viabilidade de contingência fiscal sem componente local instalado.
 
 ## Como começar a implementação
 
 Os comandos para abrir a fundação local estão no início deste README. A sequência de implementação é:
+
+O cálculo da simulação de fechamento pode ser verificado com `pnpm --filter @expert/pdv test`. Ele usa centavos inteiros e possui casos para fundo de troco, suprimento, sangria, estorno, diferença e entrada inválida.
 
 1. Fechar as decisões acima com os responsáveis de negócio, operação e fiscal.
 2. Detalhar os produtos e os fluxos reais de venda e estoque.

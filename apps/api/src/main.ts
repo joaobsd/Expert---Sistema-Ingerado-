@@ -42,6 +42,15 @@ class PilotController {
   getPilot() {
     return pilot;
   }
+
+  @Get('payments/capabilities')
+  paymentCapabilities() {
+    return {
+      finalizers: ['cash', 'debit', 'credit', 'pix', 'convenio', 'troca', 'other'],
+      tef: { status: 'provider_not_configured', actionsEnabled: false },
+      transactionsEnabled: false,
+    };
+  }
 }
 
 @Module({ controllers: [HealthController, PilotController] })

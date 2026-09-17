@@ -22,6 +22,12 @@ const reports = [
     detail: 'Desempenho e ticket médio por check-out, operador e turno.',
     phase: 'FASE 2',
   },
+  {
+    name: 'Fechamento dos PDVs',
+    detail:
+      'Conferência por turno e check-out: valor previsto, valor físico e diferença por meio de recebimento, com comprovante para impressora térmica.',
+    phase: 'FASE 2',
+  },
 ];
 
 export default function ReportsPage() {
