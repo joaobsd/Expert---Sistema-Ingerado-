@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Shell } from '../../components/shell';
 
 export default function ProductsPage() {
@@ -49,7 +50,9 @@ export default function ProductsPage() {
             <li>Lista inicial de produtos e códigos</li>
             <li>Revisão de tributação pelo responsável fiscal</li>
           </ul>
-          <span className="step-label current">PRÓXIMA ETAPA</span>
+          <Link className="catalog-action" href="/produtos/importar">
+            Preparar lista de produtos
+          </Link>
         </section>
       </div>
       <section className="panel empty-panel">

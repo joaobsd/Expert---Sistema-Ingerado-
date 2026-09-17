@@ -32,6 +32,7 @@ pnpm dev:pdv
 | API | `http://127.0.0.1:3333/health` | Estado do serviço |
 | Piloto | `http://127.0.0.1:3333/v1/pilot` | CompreMai$ Estivas, supermercado, RN |
 | Pagamentos | `http://127.0.0.1:3333/v1/payments/capabilities` | Meios previstos e TEF ainda sem provedor |
+| Preparar catálogo | `http://127.0.0.1:3000/produtos/importar` | Baixar modelo CSV e revisar produtos localmente, sem gravação |
 
 O banco é opcional para abrir as telas. O PostgreSQL é necessário antes dos cadastros reais. Crie **um banco exclusivo para desenvolvimento**, copie `apps/api/.env.example` para `apps/api/.env`, configure `DATABASE_URL` e execute `pnpm db:migrate`. A rota `/health/db` mostra se a conexão foi configurada. Nenhuma credencial de banco deve ser incluída em commits.
 
@@ -44,6 +45,12 @@ docs/      Escopo revisado do projeto
 ```
 
 O detalhamento funcional está na [planilha do escopo](docs/escopo_erp_pdv_web_revisado.xlsx).
+
+### Preparar a lista de produtos
+
+O [modelo CSV](apps/admin/public/modelo-produtos.csv) contém apenas o cabeçalho, sem produtos fictícios. Preencha uma linha por item com `sku`, `descricao`, `departamento` e `unidade_venda`; os demais campos ajudam a preparar preço, custo e revisão fiscal. Abra a página **Produtos → Preparar lista de produtos** para baixar o modelo e validar o arquivo. A prévia roda no navegador e não grava dados. Ela identifica campos obrigatórios, SKU e GTIN repetidos, dígito verificador de GTIN, formato de NCM/CEST e valores monetários. Código NCM, incidência tributária e preço exigem conferência específica antes de liberar o produto para venda.
+
+O importador aceita CSV UTF-8 separado por ponto e vírgula, até 2 MB ou 5.000 produtos por arquivo. Guarde SKU, GTIN, NCM e CEST como **texto** na planilha para preservar zeros iniciais. Salve preço e custo com vírgula decimal, por exemplo `12,34`. O cadastro definitivo no banco será ligado após autenticação, dados da empresa e regras fiscais do piloto.
 
 A API recusa inicialização com `NODE_ENV=production` porque autenticação e autorização ainda precisam ser implementadas. O esquema já separa empresa, filial, departamentos e produtos, com CNPJ textual e data de cadastro. A migração foi preparada, mas ainda não foi aplicada a um banco local nesta etapa.
 
@@ -216,13 +223,13 @@ Cada fase depende do aceite da anterior. O piloto só entra em produção após 
 
 Os comandos para abrir a fundação local estão no início deste README. A sequência de implementação é:
 
-O cálculo da simulação de fechamento pode ser verificado com `pnpm --filter @expert/pdv test`. Ele usa centavos inteiros e possui casos para fundo de troco, suprimento, sangria, estorno, diferença e entrada inválida.
+O cálculo da simulação de fechamento pode ser verificado com `pnpm --filter @expert/pdv test`. Ele usa centavos inteiros e possui casos para fundo de troco, suprimento, sangria, estorno, diferença e entrada inválida. A leitura e a validação preliminar do CSV de produtos podem ser verificadas com `pnpm --filter @expert/admin test`.
 
 1. Fechar as decisões acima com os responsáveis de negócio, operação e fiscal.
 2. Detalhar os produtos e os fluxos reais de venda e estoque.
 3. Transformar o escopo em histórias com critérios de aceite e contratos de API.
-4. Criar os projetos de frontend, PDV, API, banco e serviço fiscal.
-5. Construir a fundação, automatizar testes e avançar pelas fases do roadmap.
+4. Implementar autenticação, permissões, cadastro real e migrações de banco da fundação já criada.
+5. Integrar as operações do PDV, testar as regras de negócio e avançar pelas fases do roadmap.
 
 Contribuições futuras devem incluir testes para regras de negócio e migrações de banco. Não inclua certificados, CSC, senhas, XML de clientes ou dados pessoais reais em commits, issues ou exemplos públicos.
 
@@ -236,6 +243,8 @@ A preferência por componentes sem custo obrigatório de licença **não signifi
 - [Portal Nacional da NF-e: notas técnicas](https://www.nfe.fazenda.gov.br/portal/listaConteudo.aspx?tipoConteudo=04BIflQt1aY%3D)
 - [Receita Federal: CNPJ alfanumérico](https://www.gov.br/receitafederal/pt-br/acesso-a-informacao/acoes-e-programas/programas-e-atividades/cnpj-alfanumerico/cnpj-alfa)
 - [Receita Federal: orientações da Reforma Tributária em 2026](https://www.gov.br/receitafederal/pt-br/acesso-a-informacao/acoes-e-programas/programas-e-atividades/reforma-tributaria-do-consumo/orientacoes-2026)
+- [GS1: cálculo do dígito verificador de GTIN](https://www.gs1.org/services/how-calculate-check-digit-manually)
+- [Receita Federal: classificação fiscal e NCM](https://www.gov.br/receitafederal/pt-br/assuntos/aduana-e-comercio-exterior/classificacao-fiscal-de-mercadorias/ncm)
 - [MDN: IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API)
 - [MDN: armazenamento e remoção de dados no navegador](https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria)
 - [MDN: impressão pelo navegador](https://developer.mozilla.org/en-US/docs/Web/API/Window/print)
