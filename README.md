@@ -34,7 +34,7 @@ pnpm dev:pdv
 | Pagamentos | `http://127.0.0.1:3333/v1/payments/capabilities` | Meios previstos e TEF ainda sem provedor |
 | Preparar catálogo | `http://127.0.0.1:3000/produtos/importar` | Baixar modelo CSV e revisar produtos localmente, sem gravação |
 
-O banco é opcional para abrir as telas. O PostgreSQL é necessário antes dos cadastros reais. Crie **um banco exclusivo para desenvolvimento**, copie `apps/api/.env.example` para `apps/api/.env`, configure `DATABASE_URL` e execute `pnpm db:migrate`. A rota `/health/db` mostra se a conexão foi configurada. Nenhuma credencial de banco deve ser incluída em commits.
+O banco é opcional para abrir as telas. O PostgreSQL é necessário antes dos cadastros reais. Para o piloto local, crie **o banco novo `expert_erp_dev`** e a conexão no DBeaver conforme o [guia de configuração](docs/postgresql-dbeaver.md). Copie `apps/api/.env.example` para `apps/api/.env`, configure `DATABASE_URL` e `DATABASE_EXPECTED_NAME`, execute `pnpm db:check` e só depois `pnpm db:migrate`. A rota `/health/db` mostra se a conexão da API foi configurada. Nenhuma credencial de banco deve ser incluída em commits.
 
 ```text
 apps/

@@ -6,6 +6,9 @@ import pg from 'pg';
 if (!process.env.DATABASE_URL) {
   throw new Error('Defina DATABASE_URL para um banco PostgreSQL dedicado ao projeto.');
 }
+if (!process.env.DATABASE_EXPECTED_NAME) {
+  throw new Error('Defina DATABASE_EXPECTED_NAME para conferir o banco antes da migração.');
+}
 
 const { Client } = pg;
 const client = new Client({ connectionString: process.env.DATABASE_URL });
@@ -14,6 +17,12 @@ const files = (await fs.readdir(directory)).filter((file) => file.endsWith('.sql
 
 await client.connect();
 try {
+  const actualDatabase = await client.query('SELECT current_database() AS name');
+  if (actualDatabase.rows[0]?.name !== process.env.DATABASE_EXPECTED_NAME) {
+    throw new Error(
+      `Migração bloqueada: conexão aponta para ${actualDatabase.rows[0]?.name ?? 'desconhecido'}, mas o banco esperado é ${process.env.DATABASE_EXPECTED_NAME}.`,
+    );
+  }
   await client.query(`CREATE TABLE IF NOT EXISTS schema_migrations (
     filename text PRIMARY KEY,
     applied_at timestamptz NOT NULL DEFAULT now()

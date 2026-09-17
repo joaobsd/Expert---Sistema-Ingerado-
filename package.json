@@ -7,6 +7,7 @@
     "dev:admin": "pnpm --filter @expert/admin dev",
     "dev:pdv": "pnpm --filter @expert/pdv dev",
     "build": "pnpm -r build",
+    "db:check": "pnpm --filter @expert/api db:check",
     "db:migrate": "pnpm --filter @expert/api db:migrate",
     "format": "prettier --write \"apps/**/*.{ts,tsx,mjs,css,html,json}\" package.json pnpm-workspace.yaml",
     "format:check": "prettier --check \"apps/**/*.{ts,tsx,mjs,css,html,json}\" package.json pnpm-workspace.yaml"

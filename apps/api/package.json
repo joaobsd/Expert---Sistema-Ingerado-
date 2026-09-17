@@ -6,6 +6,7 @@
     "dev": "pnpm build && node --env-file-if-exists=.env dist/main.js",
     "build": "tsc -p tsconfig.json",
     "start": "node --env-file-if-exists=.env dist/main.js",
+    "db:check": "node --env-file-if-exists=.env scripts/check-db.mjs",
     "db:migrate": "node --env-file-if-exists=.env scripts/migrate.mjs"
   },
   "dependencies": {
