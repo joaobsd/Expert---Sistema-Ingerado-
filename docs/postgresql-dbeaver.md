@@ -1,42 +1,49 @@
 # PostgreSQL do Expert no DBeaver
 
-O DBeaver é o cliente para administrar e consultar o banco. A API do Expert se conecta diretamente ao PostgreSQL com as mesmas informações de servidor, banco e usuário. O banco de desenvolvimento escolhido é **`expert_erp_dev`**, separado das conexões DB2, SQL Server e MySQL já existentes no DBeaver.
+O ambiente de desenvolvimento do Expert nesta máquina usa uma instância exclusiva do **PostgreSQL 16.4**, em `127.0.0.1:5433`. O banco `expert_erp_dev` e o usuário de aplicação `expert_app_dev` já foram criados. As migrações `001_foundation.sql` e `002_product_hierarchy.sql` já foram aplicadas.
 
-Na verificação local de 17/09/2026, os serviços PostgreSQL 15 e 16 estavam ativos e `127.0.0.1:5432` aceitava conexões. A versão que atende nessa porta será confirmada após a autenticação. A conexão **Expert ERP - PostgreSQL admin** já foi salva no DBeaver para `127.0.0.1:5432/postgres`, usuário `postgres`, com tipo Desenvolvimento e sem senha salva. O acesso exige senha; ela não está no repositório e não deve ser enviada por mensagem.
+As instalações PostgreSQL existentes na porta `5432` não foram alteradas. A conexão antiga do DBeaver chamada **Expert ERP - PostgreSQL admin** aponta para `127.0.0.1:5432` e não deve ser usada para o Expert.
 
-## Criar o banco
+## Criar a conexão no DBeaver
 
-1. No DBeaver, conecte **Expert ERP - PostgreSQL admin**. Digite a senha do usuário `postgres` diretamente no aplicativo e confirme que a conexão funciona.
-2. Nessa conexão administrativa, crie o papel `expert_app_dev` com **LOGIN** e uma senha própria. Deixe desativadas as permissões **SUPERUSER**, **CREATEDB** e **CREATEROLE**. Use a interface de administração de papéis do DBeaver para definir a senha, sem colocá-la em scripts do projeto.
-3. No editor SQL da conexão administrativa, execute esta instrução isolada, com autocommit:
+Crie uma nova conexão do tipo **PostgreSQL** com estes dados:
 
-   ```sql
-   CREATE DATABASE expert_erp_dev OWNER expert_app_dev;
-   ```
+| Campo | Valor |
+| --- | --- |
+| Nome da conexão | `Expert ERP Desenvolvimento` |
+| Host | `127.0.0.1` |
+| Porta | `5433` |
+| Banco de dados | `expert_erp_dev` |
+| Usuário | `expert_app_dev` |
+| Senha | Valor após `EXPERT_APP_DEV_PASSWORD=` no arquivo local `C:\ProgramData\ExpertERP\PostgreSQL16\credentials.txt` |
 
-4. Crie outra conexão PostgreSQL no DBeaver, chamada **Expert ERP Desenvolvimento**, para host `127.0.0.1`, porta `5432`, banco `expert_erp_dev` e usuário `expert_app_dev`. Teste a conexão com a senha desse papel.
+O arquivo de credenciais é local e restrito ao administrador da máquina. Não copie a senha para o repositório, issues ou capturas de tela. A senha de `postgres` da **nova instância** está na linha `POSTGRES_ADMIN_PASSWORD=` do mesmo arquivo; a conexão normal do Expert usa `expert_app_dev`.
 
-Se o banco `expert_erp_dev` já existir, pare antes de executar migrações e confirme a propriedade e as tabelas. Não reutilize um banco com dados de outro sistema.
+Clique em **Testar conexão**. Depois execute:
 
-## Ligar a API
-
-Copie `apps/api/.env.example` para `apps/api/.env` e preencha `DATABASE_URL` localmente:
-
-```dotenv
-PORT=3333
-DATABASE_EXPECTED_NAME=expert_erp_dev
-DATABASE_URL=postgresql://expert_app_dev:SENHA_CODIFICADA_PARA_URL@127.0.0.1:5432/expert_erp_dev
+```sql
+SELECT current_database(), current_user, current_setting('server_version'), inet_server_port();
 ```
 
-Se a senha contiver caracteres especiais, codifique-os para URL. O arquivo `.env` é ignorado pelo Git. Não coloque senhas no README, em issues ou em commits.
+O resultado esperado é `expert_erp_dev`, `expert_app_dev`, versão `16.4` e porta `5433`.
 
-Na raiz do repositório, confira a conexão **antes** de criar tabelas:
+## API e migrações
 
-```bash
+O arquivo `apps/api/.env` já foi configurado localmente com a URL da nova instância. Ele é ignorado pelo Git. Para verificar a conexão e o estado das migrações, execute na raiz do repositório:
+
+```powershell
 pnpm db:check
 pnpm db:migrate
 ```
 
-`db:check` mostra banco, papel e versão, sem mostrar a senha. A migração compara `current_database()` com `DATABASE_EXPECTED_NAME` e é bloqueada se não coincidirem. Após migrar, confira no DBeaver as tabelas `schema_migrations`, `tenants`, `branches`, `departments`, `product_sections`, `product_groups`, `product_subgroups` e `products` no banco `expert_erp_dev`. A primeira migração cria empresa, filial, departamento e produto; a segunda acrescenta seção, grupo e subgrupo, com chaves que impedem misturar classificações entre empresas ou departamentos. Se já houver produtos gravados, a segunda migração também exigirá que não existam SKUs iguais na mesma empresa quando comparados sem diferenciar maiúsculas e minúsculas. A rota `http://127.0.0.1:3333/health/db` também pode verificar a conexão da API após iniciá-la.
+`db:migrate` pode ser executado novamente: as migrações aplicadas são identificadas pelo controle de versão do banco. O banco atual contém somente a fundação estrutural; ainda não há dados operacionais de produtos ou vendas.
 
-Referências: [conexões no DBeaver](https://dbeaver.com/docs/dbeaver/Create-Connection/), [driver PostgreSQL no DBeaver](https://dbeaver.com/docs/dbeaver/Database-driver-PostgreSQL/) e [criação de banco no PostgreSQL](https://www.postgresql.org/docs/16/manage-ag-createdb.html).
+## Iniciar o banco após reiniciar o Windows
+
+O PostgreSQL exclusivo do Expert está em `C:\ProgramData\ExpertERP\PostgreSQL16\data`. Como a configuração de inicialização automática foi negada pelo Windows nesta sessão, após reiniciar o computador execute no PowerShell:
+
+```powershell
+& .\scripts\Iniciar-Banco-Expert.ps1
+```
+
+O script verifica se a instância já está ativa e, se necessário, inicia somente a instância do Expert na porta `5433`. Ele não altera os serviços PostgreSQL existentes. Antes de cadastrar dados reais, defina uma rotina de backup e restauração testada.

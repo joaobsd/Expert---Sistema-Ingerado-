@@ -34,7 +34,7 @@ pnpm dev:pdv
 | Pagamentos | `http://127.0.0.1:3333/v1/payments/capabilities` | Meios previstos e TEF ainda sem provedor |
 | Preparar catálogo | `http://127.0.0.1:3000/produtos/importar` | Baixar modelo CSV e revisar produtos localmente, sem gravação |
 
-O banco é opcional para abrir as telas. O PostgreSQL é necessário antes dos cadastros reais. Para o piloto local, crie **o banco novo `expert_erp_dev`** e a conexão no DBeaver conforme o [guia de configuração](docs/postgresql-dbeaver.md). Copie `apps/api/.env.example` para `apps/api/.env`, configure `DATABASE_URL` e `DATABASE_EXPECTED_NAME`, execute `pnpm db:check` e só depois `pnpm db:migrate`. A rota `/health/db` mostra se a conexão da API foi configurada. Nenhuma credencial de banco deve ser incluída em commits.
+O banco é opcional para abrir as telas. Para o piloto local nesta máquina, a instância exclusiva **PostgreSQL 16.4** já está configurada em `127.0.0.1:5433`, com banco `expert_erp_dev`, usuário `expert_app_dev` e as duas migrações iniciais aplicadas. O arquivo `apps/api/.env` já contém a conexão local e é ignorado pelo Git. Crie a conexão no DBeaver conforme o [guia de configuração](docs/postgresql-dbeaver.md); nele estão o local seguro da senha, os testes e a forma de iniciar a instância após reiniciar o Windows. A rota `/health/db` mostra o estado da conexão da API. Não inclua credenciais em commits.
 
 ```text
 apps/
@@ -52,7 +52,7 @@ O [modelo CSV](apps/admin/public/modelo-produtos.csv) contém apenas o cabeçalh
 
 O importador aceita CSV UTF-8 separado por ponto e vírgula, até 2 MB ou 5.000 produtos por arquivo. Guarde SKU, GTIN, NCM e CEST como **texto** na planilha para preservar zeros iniciais. Salve preço e custo com vírgula decimal, por exemplo `12,34`. O cadastro definitivo no banco será ligado após autenticação, dados da empresa e regras fiscais do piloto.
 
-A API recusa inicialização com `NODE_ENV=production` porque autenticação e autorização ainda precisam ser implementadas. O esquema já separa empresa, filial, departamento, seção, grupo, subgrupo e produto, com CNPJ textual e data de cadastro. A hierarquia abaixo do departamento é opcional por produto, mas os vínculos preenchidos devem pertencer à mesma empresa e ao mesmo ramo de classificação. O banco também impede SKU duplicado na mesma empresa quando a diferença é apenas entre maiúsculas e minúsculas. As duas migrações foram testadas em uma instância PostgreSQL temporária; **não foram aplicadas ao banco definitivo do piloto**.
+A API recusa inicialização com `NODE_ENV=production` porque autenticação e autorização ainda precisam ser implementadas. O esquema já separa empresa, filial, departamento, seção, grupo, subgrupo e produto, com CNPJ textual e data de cadastro. A hierarquia abaixo do departamento é opcional por produto, mas os vínculos preenchidos devem pertencer à mesma empresa e ao mesmo ramo de classificação. O banco também impede SKU duplicado na mesma empresa quando a diferença é apenas entre maiúsculas e minúsculas. As duas migrações iniciais foram aplicadas ao banco local exclusivo `expert_erp_dev`; ele ainda não contém dados operacionais do piloto.
 
 ## Objetivo
 
