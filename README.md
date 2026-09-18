@@ -2,7 +2,7 @@
 
 ERP e ponto de venda web para o piloto **CompreMai$ Estivas**, varejo supermercadista no **Rio Grande do Norte**. O painel administrativo e o PDV são acessados no navegador. A emissão de NF-e e NFC-e será implementada em uma etapa posterior, com serviço no servidor e homologação na SEFAZ.
 
-> **Estado do projeto:** fundação executável em desenvolvimento. Há painel ERP, tela inicial do PDV, simulação de conferência e comprovante de fechamento, API local, esquema inicial do banco e escopo. Ainda não há cadastro operacional, venda, sessão real de caixa, autenticação ou emissão fiscal. Esta versão não deve ser usada em produção.
+> **Estado do projeto:** fundação executável em desenvolvimento. Há painel ERP, tela inicial do PDV, simulação de conferência e comprovante de fechamento, API local, esquema inicial do banco e consulta real do relatório de produtos cadastrados. Ainda não há cadastro operacional, venda, sessão real de caixa, autenticação ou emissão fiscal. Esta versão não deve ser usada em produção.
 >
 > **Revisão do escopo:** 17 de setembro de 2026.
 
@@ -33,6 +33,7 @@ pnpm dev:pdv
 | Piloto | `http://127.0.0.1:3333/v1/pilot` | CompreMai$ Estivas, supermercado, RN |
 | Pagamentos | `http://127.0.0.1:3333/v1/payments/capabilities` | Meios previstos e TEF ainda sem provedor |
 | Preparar catálogo | `http://127.0.0.1:3000/produtos/importar` | Baixar modelo CSV e revisar produtos localmente, sem gravação |
+| Relatório de cadastro de produtos | `http://127.0.0.1:3000/relatorios/cadastro-produtos` | Consulta o PostgreSQL por período, empresa, departamento e situação; ainda sem registros reais |
 
 O banco é opcional para abrir as telas. Para o piloto local nesta máquina, a instância exclusiva **PostgreSQL 16.4** já está configurada em `127.0.0.1:5433`, com banco `expert_erp_dev`, usuário `expert_app_dev` e as duas migrações iniciais aplicadas. O arquivo `apps/api/.env` já contém a conexão local e é ignorado pelo Git. Crie a conexão no DBeaver conforme o [guia de configuração](docs/postgresql-dbeaver.md); nele estão o local seguro da senha, os testes e a forma de iniciar a instância após reiniciar o Windows. A rota `/health/db` mostra o estado da conexão da API. Não inclua credenciais em commits.
 
@@ -45,6 +46,8 @@ docs/      Escopo revisado do projeto
 ```
 
 O detalhamento funcional está na [planilha do escopo](docs/escopo_erp_pdv_web_revisado.xlsx).
+
+O relatório de cadastro de produtos lê `products.registered_at` no fuso `America/Fortaleza`, apresenta a hierarquia de departamento, seção, grupo e subgrupo e pagina o resultado em lotes de 100. A API exige o identificador da empresa e valida datas e filtros. Como o piloto ainda não tem empresa nem produtos cadastrados, a tela mostra esse estado vazio. A exportação e o filtro por responsável dependem do cadastro de usuários e entram numa etapa seguinte. Após atualizar o código, reinicie a API e o painel que já estiverem abertos para carregar as novas rotas.
 
 ### Preparar a lista de produtos
 

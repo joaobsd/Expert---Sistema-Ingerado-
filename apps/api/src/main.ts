@@ -1,7 +1,8 @@
 import 'reflect-metadata';
 import { Controller, Get, Module } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { Pool } from 'pg';
+import { DatabaseService } from './database.service.js';
+import { ProductRegistrationReportController } from './product-registration-report.controller.js';
 
 const pilot = Object.freeze({
   storeName: 'CompreMai$ Estivas',
@@ -13,6 +14,8 @@ const pilot = Object.freeze({
 
 @Controller()
 class HealthController {
+  constructor(private readonly databaseService: DatabaseService) {}
+
   @Get('health')
   health() {
     return { status: 'ok', service: 'expert-api', phase: pilot.phase };
@@ -21,17 +24,11 @@ class HealthController {
   @Get('health/db')
   async database() {
     if (!process.env.DATABASE_URL) return { status: 'not_configured' };
-    const pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      connectionTimeoutMillis: 3000,
-    });
     try {
-      await pool.query('SELECT 1');
+      await this.databaseService.getPool().query('SELECT 1');
       return { status: 'ok' };
     } catch {
       return { status: 'unavailable' };
-    } finally {
-      await pool.end();
     }
   }
 }
@@ -53,7 +50,10 @@ class PilotController {
   }
 }
 
-@Module({ controllers: [HealthController, PilotController] })
+@Module({
+  controllers: [HealthController, PilotController, ProductRegistrationReportController],
+  providers: [DatabaseService],
+})
 class AppModule {}
 
 async function bootstrap() {

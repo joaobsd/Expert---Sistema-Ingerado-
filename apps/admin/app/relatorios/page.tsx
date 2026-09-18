@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Shell } from '../../components/shell';
 
 const reports = [
@@ -9,8 +10,9 @@ const reports = [
   },
   {
     name: 'Cadastro de produtos',
-    detail: 'Lista por data de cadastro, departamento, status e responsável.',
+    detail: 'Consulta ao banco por data de cadastro, empresa, departamento e situação.',
     phase: 'FASE 1',
+    href: '/relatorios/cadastro-produtos',
   },
   {
     name: 'Entradas de mercadorias',
@@ -34,10 +36,10 @@ export default function ReportsPage() {
   return (
     <Shell page="relatorios" eyebrow="GESTÃO" title="Relatórios">
       <div className="info-banner">
-        <strong>Catálogo de relatórios aprovado no escopo</strong>
+        <strong>Relatórios do Expert</strong>
         <span>
-          Os relatórios receberão dados reais conforme cada módulo operacional entrar em
-          funcionamento.
+          O relatório de cadastro de produtos já consulta o PostgreSQL. Os demais receberão dados
+          conforme cada módulo operacional entrar em funcionamento.
         </span>
       </div>
       <div className="report-grid">
@@ -47,7 +49,13 @@ export default function ReportsPage() {
             <span className="panel-tag">{report.phase}</span>
             <h2>{report.name}</h2>
             <p>{report.detail}</p>
-            <span className="step-label">AGUARDANDO DADOS</span>
+            {report.href ? (
+              <Link className="catalog-action" href={report.href}>
+                Abrir relatório
+              </Link>
+            ) : (
+              <span className="step-label">AGUARDANDO DADOS</span>
+            )}
           </article>
         ))}
       </div>

@@ -457,6 +457,119 @@ a {
   max-width: 440px;
   min-height: 38px;
 }
+.report-back {
+  margin: -5px 0 18px;
+  color: var(--teal);
+  font-size: 12px;
+  font-weight: 700;
+}
+.registration-filters {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) auto;
+  align-items: end;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.registration-filters label {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  color: #526e79;
+  font-size: 11px;
+  font-weight: 700;
+}
+.registration-filters input,
+.registration-filters select {
+  min-width: 0;
+  width: 100%;
+  padding: 10px 9px;
+  border: 1px solid #d8e5e9;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+}
+.registration-filters button {
+  border: 0;
+  border-radius: 8px;
+  background: var(--teal);
+  color: #fff;
+  padding: 11px 15px;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.registration-filters button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.registration-empty p {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.registration-results {
+  padding: 0;
+  overflow: hidden;
+}
+.registration-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 23px 24px 18px;
+}
+.registration-heading h2 {
+  margin: 0;
+}
+.registration-heading strong {
+  color: var(--teal);
+  font-size: 14px;
+}
+.registration-table-wrap {
+  overflow-x: auto;
+}
+.registration-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  text-align: left;
+}
+.registration-table th,
+.registration-table td {
+  padding: 13px 15px;
+  border-top: 1px solid var(--line);
+  vertical-align: top;
+}
+.registration-table th {
+  background: #f8fbfc;
+  color: #657f8b;
+  white-space: nowrap;
+}
+.registration-table td:nth-child(2),
+.registration-table td:nth-child(6),
+.registration-table td:nth-child(7) {
+  white-space: nowrap;
+}
+.registration-empty-cell {
+  text-align: center;
+  color: var(--muted);
+  padding: 30px !important;
+}
+.registration-pages {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 16px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+}
+.registration-pages a {
+  color: var(--teal);
+  font-weight: 800;
+}
 .closings-panel,
 .closings-notes {
   background: #fff;
@@ -781,6 +894,9 @@ a {
   border-bottom: 1px solid var(--line);
 }
 @media (max-width: 1050px) {
+  .registration-filters {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
   .catalog-step-grid {
     grid-template-columns: 1fr;
   }
@@ -804,6 +920,13 @@ a {
   }
 }
 @media (max-width: 700px) {
+  .registration-filters {
+    grid-template-columns: 1fr;
+  }
+  .registration-heading {
+    align-items: start;
+    flex-direction: column;
+  }
   .catalog-review-head {
     display: block;
   }
