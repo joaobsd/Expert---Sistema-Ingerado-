@@ -52,7 +52,7 @@ O [modelo CSV](apps/admin/public/modelo-produtos.csv) contém apenas o cabeçalh
 
 O importador aceita CSV UTF-8 separado por ponto e vírgula, até 2 MB ou 5.000 produtos por arquivo. Guarde SKU, GTIN, NCM e CEST como **texto** na planilha para preservar zeros iniciais. Salve preço e custo com vírgula decimal, por exemplo `12,34`. O cadastro definitivo no banco será ligado após autenticação, dados da empresa e regras fiscais do piloto.
 
-A API recusa inicialização com `NODE_ENV=production` porque autenticação e autorização ainda precisam ser implementadas. O esquema já separa empresa, filial, departamentos e produtos, com CNPJ textual e data de cadastro. A migração foi preparada, mas ainda não foi aplicada a um banco local nesta etapa.
+A API recusa inicialização com `NODE_ENV=production` porque autenticação e autorização ainda precisam ser implementadas. O esquema já separa empresa, filial, departamento, seção, grupo, subgrupo e produto, com CNPJ textual e data de cadastro. A hierarquia abaixo do departamento é opcional por produto, mas os vínculos preenchidos devem pertencer à mesma empresa e ao mesmo ramo de classificação. O banco também impede SKU duplicado na mesma empresa quando a diferença é apenas entre maiúsculas e minúsculas. As duas migrações foram testadas em uma instância PostgreSQL temporária; **não foram aplicadas ao banco definitivo do piloto**.
 
 ## Objetivo
 

@@ -37,6 +37,6 @@ pnpm db:check
 pnpm db:migrate
 ```
 
-`db:check` mostra banco, papel e versão, sem mostrar a senha. A migração compara `current_database()` com `DATABASE_EXPECTED_NAME` e é bloqueada se não coincidirem. Após migrar, confira no DBeaver as tabelas `schema_migrations`, `tenants`, `branches`, `departments` e `products` no banco `expert_erp_dev`. A rota `http://127.0.0.1:3333/health/db` também pode verificar a conexão da API após iniciá-la.
+`db:check` mostra banco, papel e versão, sem mostrar a senha. A migração compara `current_database()` com `DATABASE_EXPECTED_NAME` e é bloqueada se não coincidirem. Após migrar, confira no DBeaver as tabelas `schema_migrations`, `tenants`, `branches`, `departments`, `product_sections`, `product_groups`, `product_subgroups` e `products` no banco `expert_erp_dev`. A primeira migração cria empresa, filial, departamento e produto; a segunda acrescenta seção, grupo e subgrupo, com chaves que impedem misturar classificações entre empresas ou departamentos. Se já houver produtos gravados, a segunda migração também exigirá que não existam SKUs iguais na mesma empresa quando comparados sem diferenciar maiúsculas e minúsculas. A rota `http://127.0.0.1:3333/health/db` também pode verificar a conexão da API após iniciá-la.
 
 Referências: [conexões no DBeaver](https://dbeaver.com/docs/dbeaver/Create-Connection/), [driver PostgreSQL no DBeaver](https://dbeaver.com/docs/dbeaver/Database-driver-PostgreSQL/) e [criação de banco no PostgreSQL](https://www.postgresql.org/docs/16/manage-ag-createdb.html).
