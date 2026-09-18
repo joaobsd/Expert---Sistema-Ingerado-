@@ -706,6 +706,17 @@ a {
 .catalog-departments strong {
   color: #254353;
 }
+.catalog-unmapped {
+  margin: 0;
+  padding: 12px 25px;
+  border-top: 1px solid var(--line);
+  color: #765b2b;
+  background: #fff9e9;
+  font-size: 11px;
+}
+.catalog-unmapped strong {
+  color: #624717;
+}
 .catalog-table-wrap {
   overflow-x: auto;
 }
@@ -730,9 +741,14 @@ a {
   border-bottom: 1px solid #e9eff2;
 }
 .catalog-table td:nth-child(2),
-.catalog-table td:nth-child(6) {
+.catalog-table td:nth-child(6),
+.catalog-table td:nth-child(7) {
   white-space: nowrap;
   font-family: ui-monospace, Consolas, monospace;
+}
+.catalog-table td.catalog-hierarchy {
+  min-width: 220px;
+  line-height: 1.5;
 }
 .catalog-table td:last-child {
   min-width: 230px;

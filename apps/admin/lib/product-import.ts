@@ -9,6 +9,8 @@ export const productHeaders = [
   'preco_venda',
   'custo_unitario',
 ] as const;
+export const optionalProductHeaders = ['secao', 'grupo', 'subgrupo'] as const;
+type ProductColumn = (typeof productHeaders)[number] | (typeof optionalProductHeaders)[number];
 
 export type ProductIssue = { line: number; level: 'error' | 'warning'; message: string };
 export type ProductDraft = {
@@ -16,6 +18,9 @@ export type ProductDraft = {
   sku: string;
   description: string;
   department: string;
+  section: string;
+  group: string;
+  subgroup: string;
   unit: string;
   gtin: string;
   ncm: string;
@@ -28,6 +33,7 @@ export type ProductReview = {
   rows: ProductDraft[];
   issues: ProductIssue[];
   departments: string[];
+  unmappedColumns: string[];
 };
 
 function normalizeHeader(value: string): string {
@@ -113,12 +119,16 @@ export function reviewProductCsv(text: string): ProductReview {
     throw new Error('Há colunas repetidas no cabeçalho.');
   const missing = productHeaders.filter((header) => !headers.includes(header));
   if (missing.length) throw new Error(`Colunas ausentes: ${missing.join(', ')}.`);
+  const knownHeaders: readonly string[] = [...productHeaders, ...optionalProductHeaders];
+  const unmappedColumns = parsed[0].cells.filter(
+    (_, index) => !knownHeaders.includes(headers[index]),
+  );
 
   const issues: ProductIssue[] = [];
   const rows: ProductDraft[] = [];
   const seenSku = new Map<string, number>();
   const seenGtin = new Map<string, number>();
-  const col = (cells: string[], header: (typeof productHeaders)[number]) =>
+  const col = (cells: string[], header: ProductColumn) =>
     (cells[headers.indexOf(header)] ?? '').trim();
 
   for (const source of parsed.slice(1)) {
@@ -133,6 +143,9 @@ export function reviewProductCsv(text: string): ProductReview {
     const sku = col(source.cells, 'sku');
     const description = col(source.cells, 'descricao');
     const department = col(source.cells, 'departamento');
+    const section = col(source.cells, 'secao');
+    const group = col(source.cells, 'grupo');
+    const subgroup = col(source.cells, 'subgrupo');
     const unit = col(source.cells, 'unidade_venda').toUpperCase();
     const gtin = col(source.cells, 'gtin');
     const ncm = col(source.cells, 'ncm');
@@ -147,6 +160,8 @@ export function reviewProductCsv(text: string): ProductReview {
     else seenSku.set(sku.toLocaleLowerCase('pt-BR'), source.line);
     if (!description) add('error', 'Descrição obrigatória.');
     if (!department) add('error', 'Departamento obrigatório.');
+    if (group && !section) add('warning', 'Grupo informado sem seção.');
+    if (subgroup && !group) add('warning', 'Subgrupo informado sem grupo.');
     if (!unit) add('error', 'Unidade de venda obrigatória.');
     if (gtin && !validGtin(gtin)) add('error', 'GTIN com tamanho ou dígito verificador inválido.');
     if (gtin && seenGtin.has(gtin)) add('error', `GTIN repetido (linha ${seenGtin.get(gtin)}).`);
@@ -164,6 +179,9 @@ export function reviewProductCsv(text: string): ProductReview {
       sku,
       description,
       department,
+      section,
+      group,
+      subgroup,
       unit,
       gtin,
       ncm,
@@ -179,5 +197,6 @@ export function reviewProductCsv(text: string): ProductReview {
     departments: [...new Set(rows.map((row) => row.department).filter(Boolean))].sort((a, b) =>
       a.localeCompare(b, 'pt-BR'),
     ),
+    unmappedColumns,
   };
 }

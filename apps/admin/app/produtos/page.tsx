@@ -24,7 +24,7 @@ export default function ProductsPage() {
             </div>
             <div>
               <strong>Organização</strong>
-              <span>Departamento e status do produto</span>
+              <span>Departamento, seção, grupo, subgrupo e status</span>
             </div>
             <div>
               <strong>Fiscal</strong>
@@ -41,8 +41,9 @@ export default function ProductsPage() {
             <h2>Para abrir o cadastro</h2>
           </div>
           <p>
-            Precisamos definir os departamentos e os primeiros produtos do supermercado, incluindo
-            como serão vendidos: unidade, peso ou outra unidade aplicável.
+            A lista inicial está sendo preparada com departamento, seção, grupo, subgrupo, NCM e
+            dados tributários. Também precisamos identificar como cada produto será vendido:
+            unidade, peso ou outra unidade aplicável.
           </p>
           <ul>
             <li>Empresa e filial do piloto</li>

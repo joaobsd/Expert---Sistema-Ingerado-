@@ -53,8 +53,9 @@ export function ProductImportClient() {
           <span className="catalog-step-number">01</span>
           <h2>Baixe o modelo</h2>
           <p>
-            Uma linha por produto. Preencha SKU, descrição, departamento e unidade de venda. GTIN,
-            NCM, CEST, preço e custo podem ser revisados antes da ativação.
+            Uma linha por produto. Preencha SKU, descrição, departamento e unidade de venda. Seção,
+            grupo e subgrupo são opcionais nesta prévia. GTIN, NCM, CEST, preço e custo podem ser
+            revisados antes da ativação.
           </p>
           <a
             className="catalog-action"
@@ -132,6 +133,13 @@ export function ProductImportClient() {
               <strong>Departamentos encontrados:</strong> {review.departments.join(', ')}
             </p>
           )}
+          {review.unmappedColumns.length > 0 && (
+            <p className="catalog-unmapped" role="status">
+              <strong>Colunas ainda sem mapeamento:</strong> {review.unmappedColumns.join(', ')}.
+              Elas não entram nesta prévia. Os campos tributários serão mapeados quando recebermos a
+              lista real.
+            </p>
+          )}
           <div className="catalog-table-wrap">
             <table className="catalog-table">
               <thead>
@@ -139,9 +147,10 @@ export function ProductImportClient() {
                   <th>Linha</th>
                   <th>SKU</th>
                   <th>Descrição</th>
-                  <th>Departamento</th>
+                  <th>Classificação</th>
                   <th>Unid.</th>
                   <th>GTIN</th>
+                  <th>NCM</th>
                   <th>Preço</th>
                   <th>Apontamentos</th>
                 </tr>
@@ -152,9 +161,14 @@ export function ProductImportClient() {
                     <td>{row.line}</td>
                     <td>{row.sku || '—'}</td>
                     <td>{row.description || '—'}</td>
-                    <td>{row.department || '—'}</td>
+                    <td className="catalog-hierarchy">
+                      {[row.department, row.section, row.group, row.subgroup]
+                        .filter(Boolean)
+                        .join(' › ') || '—'}
+                    </td>
                     <td>{row.unit || '—'}</td>
                     <td>{row.gtin || '—'}</td>
+                    <td>{row.ncm || '—'}</td>
                     <td>{money(row.priceCents)}</td>
                     <td>
                       {row.issues.length ? (
@@ -171,7 +185,7 @@ export function ProductImportClient() {
                 ))}
                 {!visibleRows?.length && (
                   <tr>
-                    <td colSpan={8} className="catalog-no-rows">
+                    <td colSpan={9} className="catalog-no-rows">
                       {review.rows.length === 0
                         ? 'Arquivo ainda sem produtos. Preencha o modelo e selecione novamente.'
                         : 'Nenhuma linha corresponde ao filtro.'}

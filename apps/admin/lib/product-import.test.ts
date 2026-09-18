@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { productHeaders, reviewProductCsv } from './product-import.ts';
+import { optionalProductHeaders, productHeaders, reviewProductCsv } from './product-import.ts';
 
 const header = productHeaders.join(';');
 
@@ -30,4 +30,21 @@ test('aponta SKU repetido, GTIN inválido e dados pendentes sem gravar', () => {
 test('rejeita cabeçalho incompleto e aspas abertas', () => {
   assert.throws(() => reviewProductCsv('sku;descricao\n1;Teste'), /Colunas ausentes/);
   assert.throws(() => reviewProductCsv(`${header}\n1;"Teste`), /não foi fechado/);
+});
+
+test('lê a hierarquia opcional e avisa sobre tributação ainda não mapeada', () => {
+  const fullHeader = [
+    ...productHeaders,
+    ...optionalProductHeaders.map((header) => (header === 'secao' ? 'Seção' : header)),
+    'tributacao',
+  ].join(';');
+  const review = reviewProductCsv(
+    `${fullHeader}\n001;Produto;Mercearia;UN;;12345678;;12,34;9,10;Alimentos;Básicos;Massas;REF-TRIB`,
+  );
+  assert.equal(review.rows[0].department, 'Mercearia');
+  assert.equal(review.rows[0].section, 'Alimentos');
+  assert.equal(review.rows[0].group, 'Básicos');
+  assert.equal(review.rows[0].subgroup, 'Massas');
+  assert.deepEqual(review.unmappedColumns, ['tributacao']);
+  assert.equal(review.issues.length, 0);
 });
